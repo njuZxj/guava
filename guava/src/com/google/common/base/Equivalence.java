@@ -27,6 +27,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * hash codes in a manner consistent with that equivalence. Two examples of equivalences are the
  * {@linkplain #identity() identity equivalence} and the {@linkplain #equals "equals" equivalence}.
  *
+ * 此类用来比较两个实例是否相等的。两个等价的实例是：引用相等并且值相等
  * @author Bob Lee
  * @author Ben Yu
  * @author Gregory Kick
