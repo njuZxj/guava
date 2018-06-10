@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * This class provides a skeletal implementation of the {@code Cache} interface to minimize the
  * effort required to implement this interface.
- *
+ * 这个抽象类是实现接口Cache的基本抽象类
  * <p>To implement a cache, the programmer needs only to extend this class and provide an
  * implementation for the {@link #put} and {@link #getIfPresent} methods. {@link #getAllPresent} is
  * implemented in terms of {@link #getIfPresent}; {@link #putAll} is implemented in terms of {@link
@@ -34,6 +34,9 @@ import java.util.concurrent.ExecutionException;
  * method {@link #cleanUp} is a no-op. All other methods throw an {@link
  * UnsupportedOperationException}.
  *
+ *  为了实现缓存，程序员仅仅需要扩展这个类，实现put和getIfPresent方法。getAllPresent的实现使用getIfPresent。
+ *  putAll的实现使用put。invalidateAll的实现使用invalidate。cleanUp是一个no-op。所有其他的方法会抛出一个
+ *  UnsupportedOperationException异常。
  * @author Charles Fry
  * @since 10.0
  */

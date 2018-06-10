@@ -158,6 +158,9 @@ public final class Futures extends GwtFuturesCatchingSpecialization {
    * Creates a {@code ListenableFuture} which has its value set immediately upon construction. The
    * getters just return the value. This {@code Future} can't be canceled or timed out and its
    * {@code isDone()} method always returns {@code true}.
+   *
+   * 创建一个ListenableFutre，它的值在构造函数里被设置。它的值立马返回。
+   * 这个Future不能被取消并且没有超时机制。它的isDone总是返回true
    */
   public static <V> ListenableFuture<V> immediateFuture(@Nullable V value) {
     if (value == null) {
@@ -195,7 +198,8 @@ public final class Futures extends GwtFuturesCatchingSpecialization {
 
   /**
    * Returns a {@code ListenableFuture} which has an exception set immediately upon construction.
-   *
+   * 一个LisenableFutrue，一个异常在构造函数中被设置。
+   * 这个Future不能被取消，它的isDone方法总是返回ture。调用get立即获得异常
    * <p>The returned {@code Future} can't be cancelled, and its {@code isDone()} method always
    * returns {@code true}. Calling {@code get()} will immediately throw the provided {@code
    * Throwable} wrapped in an {@code ExecutionException}.

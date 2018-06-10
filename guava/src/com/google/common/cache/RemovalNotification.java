@@ -28,6 +28,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * strong references to the key and value, regardless of the type of references the cache may be
  * using.
  *
+ * 当移除一个项时，会收到一个通知，key/or value可能为null,如果他们已经被垃圾回收掉
  * @author Charles Fry
  * @since 10.0
  */

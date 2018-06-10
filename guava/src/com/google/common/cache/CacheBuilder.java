@@ -31,6 +31,8 @@ import com.google.common.cache.AbstractCache.StatsCounter;
 import com.google.common.cache.LocalCache.Strength;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.j2objc.annotations.J2ObjCIncompatible;
+
+import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.ConcurrentModificationException;
@@ -56,6 +58,13 @@ import org.checkerframework.checker.nullness.compatqual.MonotonicNonNullDecl;
  *   <li>notification of evicted (or otherwise removed) entries
  *   <li>accumulation of cache access statistics
  * </ul>
+ *
+ * 1.自动加载数据项到缓存
+ * 2.使用最近最少的淘汰策略
+ * 3.提供基于时间的淘汰策略
+ * 4.key和value都被自动包装成WeakReference
+ * 5.当一个数据项过期或被移除会收到通知
+ * 6.具有缓存访问统计
  *
  *
  * <p>These features are all optional; caches can be created using all or none of them. By default
@@ -155,11 +164,20 @@ import org.checkerframework.checker.nullness.compatqual.MonotonicNonNullDecl;
  */
 @GwtCompatible(emulated = true)
 public final class CacheBuilder<K, V> {
+
+  /**默认的初始容量*/
   private static final int DEFAULT_INITIAL_CAPACITY = 16;
+
+  /**默认的并发级别*/
   private static final int DEFAULT_CONCURRENCY_LEVEL = 4;
+
+  /**默认的过期时间*/
   private static final int DEFAULT_EXPIRATION_NANOS = 0;
+
+  /**默认的更新时间*/
   private static final int DEFAULT_REFRESH_NANOS = 0;
 
+  /**null 计数器*/
   static final Supplier<? extends StatsCounter> NULL_STATS_COUNTER =
       Suppliers.ofInstance(
           new StatsCounter() {
@@ -183,16 +201,17 @@ public final class CacheBuilder<K, V> {
               return EMPTY_STATS;
             }
           });
+
+  /**empty计数器*/
   static final CacheStats EMPTY_STATS = new CacheStats(0, 0, 0, 0, 0, 0);
 
-  static final Supplier<StatsCounter> CACHE_STATS_COUNTER =
-      new Supplier<StatsCounter>() {
-        @Override
-        public StatsCounter get() {
-          return new SimpleStatsCounter();
-        }
-      };
+  /**
+   * cache统计计数器
+   */
+  static final Supplier<StatsCounter> CACHE_STATS_COUNTER = () ->  new SimpleStatsCounter();
 
+
+  /**null 值监听器*/
   enum NullListener implements RemovalListener<Object, Object> {
     INSTANCE;
 
@@ -200,6 +219,9 @@ public final class CacheBuilder<K, V> {
     public void onRemoval(RemovalNotification<Object, Object> notification) {}
   }
 
+  /**
+   * 缓存项的权重
+   */
   enum OneWeigher implements Weigher<Object, Object> {
     INSTANCE;
 
@@ -229,6 +251,7 @@ public final class CacheBuilder<K, V> {
   long maximumWeight = UNSET_INT;
   @MonotonicNonNullDecl Weigher<? super K, ? super V> weigher;
 
+  /**key,跟value的引用类型*/
   @MonotonicNonNullDecl Strength keyStrength;
   @MonotonicNonNullDecl Strength valueStrength;
 
@@ -236,9 +259,11 @@ public final class CacheBuilder<K, V> {
   long expireAfterAccessNanos = UNSET_INT;
   long refreshNanos = UNSET_INT;
 
+  /**标记key相等*/
   @MonotonicNonNullDecl Equivalence<Object> keyEquivalence;
   @MonotonicNonNullDecl Equivalence<Object> valueEquivalence;
 
+  /**移除listener*/
   @MonotonicNonNullDecl RemovalListener<? super K, ? super V> removalListener;
   @MonotonicNonNullDecl Ticker ticker;
 
@@ -259,7 +284,7 @@ public final class CacheBuilder<K, V> {
 
   /**
    * Constructs a new {@code CacheBuilder} instance with the settings specified in {@code spec}.
-   *
+   * 构造一个CacheBuilder实例通过CacheBuilderSpec
    * @since 12.0
    */
   @GwtIncompatible // To be supported
@@ -292,7 +317,7 @@ public final class CacheBuilder<K, V> {
 
   /**
    * Sets a custom {@code Equivalence} strategy for comparing keys.
-   *
+   * 为了比较key，自定义一个key的相等比较策略
    * <p>By default, the cache uses {@link Equivalence#identity} to determine key equality when
    * {@link #weakKeys} is specified, and {@link Equivalence#equals()} otherwise.
    *
@@ -337,6 +362,13 @@ public final class CacheBuilder<K, V> {
    * avoids the need for expensive resizing operations later, but setting this value unnecessarily
    * high wastes memory.
    *
+   * 设置内部hash 容量的最小值
+   *
+   * 例如：如果规定初始容量为60，并发级别是8，此时8个分段锁被创建，每个段里有关内部hashtable。初始容量
+   * 为8.
+   *
+   * estimate:估算
+   *
    * @return this {@code CacheBuilder} instance (for chaining)
    * @throws IllegalArgumentException if {@code initialCapacity} is negative
    * @throws IllegalStateException if an initial capacity was already set
@@ -379,6 +411,7 @@ public final class CacheBuilder<K, V> {
    * uncommon to specify {@code concurrencyLevel(1)} in order to achieve more deterministic eviction
    * behavior.
    *
+   * 并发实现使用并发级别创建固定数目的内部hashtable.每一个内部有自己的一把写锁控制。
    * <p>Note that future implementations may abandon segment locking in favor of more advanced
    * concurrency controls.
    *
@@ -403,6 +436,10 @@ public final class CacheBuilder<K, V> {
   /**
    * Specifies the maximum number of entries the cache may contain.
    *
+   * 规定缓存中缓存的最大条目；
+   *
+   * 每个segment对应的hashtable的最大条目接近于：maximumSize / concurrencyLevel
+   *
    * <p>Note that the cache <b>may evict an entry before this limit is exceeded</b>. For example, in
    * the current implementation, when {@code concurrencyLevel} is greater than {@code 1}, each
    * resulting segment inside the cache <i>independently</i> limits its own size to approximately
@@ -413,6 +450,8 @@ public final class CacheBuilder<K, V> {
    *
    * <p>If {@code maximumSize} is zero, elements will be evicted immediately after being loaded into
    * cache. This can be useful in testing, or to disable caching temporarily.
+   *
+   * 如果 maximumSize == 0,缓存的元素立刻被淘汰。
    *
    * <p>This feature cannot be used in conjunction with {@link #maximumWeight}.
    *
@@ -435,6 +474,7 @@ public final class CacheBuilder<K, V> {
   }
 
   /**
+   * 规定最大的权重为缓存。
    * Specifies the maximum weight of entries the cache may contain. Weight is determined using the
    * {@link Weigher} specified with {@link #weigher}, and use of this method requires a
    * corresponding call to {@link #weigher} prior to calling {@link #build}.
@@ -928,6 +968,7 @@ public final class CacheBuilder<K, V> {
   public <K1 extends K, V1 extends V> LoadingCache<K1, V1> build(
       CacheLoader<? super K1, V1> loader) {
     checkWeightWithWeigher();
+
     return new LocalCache.LocalLoadingCache<>(this, loader);
   }
 

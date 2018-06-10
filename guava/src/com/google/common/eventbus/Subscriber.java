@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Two subscribers are equivalent when they refer to the same method on the same object (not
  * class). This property is used to ensure that no subscriber method is registered more than once.
  *
+ * 订阅者：订阅事件，两个订阅者是相等的当它们引用相同的方法在相同的对象上。
+ *
  * @author Colin Decker
  */
 class Subscriber {
@@ -42,15 +44,18 @@ class Subscriber {
   }
 
   /** The event bus this subscriber belongs to. */
+  /**订阅者所属的 事件总线*/
   @Weak private EventBus bus;
 
   /** The object with the subscriber method. */
   @VisibleForTesting final Object target;
 
   /** Subscriber method. */
+  /**订阅者的方法*/
   private final Method method;
 
   /** Executor to use for dispatching events to this subscriber. */
+  /**多线程的执行者*/
   private final Executor executor;
 
   private Subscriber(EventBus bus, Object target, Method method) {
@@ -63,6 +68,7 @@ class Subscriber {
   }
 
   /** Dispatches {@code event} to this subscriber using the proper executor. */
+  /**分发事件 到合适的订阅者*/
   final void dispatchEvent(final Object event) {
     executor.execute(
         new Runnable() {
@@ -80,10 +86,13 @@ class Subscriber {
   /**
    * Invokes the subscriber method. This method can be overridden to make the invocation
    * synchronized.
+   *
+   * 调用调用者的方法
    */
   @VisibleForTesting
   void invokeSubscriberMethod(Object event) throws InvocationTargetException {
     try {
+      /**java方法调用*/
       method.invoke(target, checkNotNull(event));
     } catch (IllegalArgumentException e) {
       throw new Error("Method rejected target/argument: " + event, e);
@@ -122,6 +131,8 @@ class Subscriber {
   /**
    * Checks whether {@code method} is thread-safe, as indicated by the presence of the {@link
    * AllowConcurrentEvents} annotation.
+   *
+   * 判断此方法是否是线程安全的
    */
   private static boolean isDeclaredThreadSafe(Method method) {
     return method.getAnnotation(AllowConcurrentEvents.class) != null;
@@ -130,6 +141,8 @@ class Subscriber {
   /**
    * Subscriber that synchronizes invocations of a method to ensure that only one thread may enter
    * the method at a time.
+   *
+   * 订阅者 仅仅一个线程能进入此方法
    */
   @VisibleForTesting
   static final class SynchronizedSubscriber extends Subscriber {

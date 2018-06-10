@@ -24,6 +24,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * #setException(Throwable)} or {@link #setFuture(ListenableFuture)} call. It can also, like any
  * other {@code Future}, be {@linkplain #cancel cancelled}.
  *
+ * 一个 ListenableFuture的结果可以被设置通过set(Object)，setException(Throwable),setFuture(ListenableFuture)
+ *
+ *SettableFuture被推荐作为实现当你的任务没有实现ListeningExecutorServer。
  * <p>{@code SettableFuture} is the recommended {@code ListenableFuture} implementation when your
  * task cannot be implemented with {@link ListeningExecutorService}, the various {@link Futures}
  * utility methods, or {@link ListenableFutureTask}. Those APIs have less opportunity for developer

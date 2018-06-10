@@ -104,6 +104,10 @@ public interface ListenableFuture<V> extends Future<V> {
    * The listener will run when the {@code Future}'s computation is {@linkplain Future#isDone()
    * complete} or, if the computation is already complete, immediately.
    *
+   * 注册一个监听器当 Future.isDone被完成时，监听器将被调用。
+   *
+   * 注意，这儿不能保证监听器被执行的顺序。但是任何监听器被添加通知这个方法能够被保证当任务完成时调用一次
+   *
    * <p>There is no guaranteed ordering of execution of listeners, but any listener added through
    * this method is guaranteed to be called once the computation is complete.
    *

@@ -30,14 +30,21 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * #get(Object, Callable)} or {@link #put(Object, Object)}, and are stored in the cache until either
  * evicted or manually invalidated. The common way to build instances is using {@link CacheBuilder}.
  *
+ * 一个半持久化keys和values的map。缓存数据项通过调用get(Object,Callable)或者put(Object,Object)方法。
+ *
+ * 这些数据项将被一直缓存直到数据项过期或者手动置为无效。
+ *
+ * 基本的使用是通过CacheBuilder构造实例。
+ *
  * <p>Implementations of this interface are expected to be thread-safe, and can be safely accessed
  * by multiple concurrent threads.
  *
+ *  这个接口的实现类需要是个线程安全的类，可以同时被多个线程并发的访问。
  * @author Charles Fry
  * @since 10.0
  */
 @GwtCompatible
-public interface Cache<K, V> {
+public interface  Cache<K, V> {
 
   /**
    * Returns the value associated with {@code key} in this cache, or {@code null} if there is no
@@ -53,9 +60,14 @@ public interface Cache<K, V> {
    * loader} if necessary. The method improves upon the conventional "if cached, return; otherwise
    * create, cache and return" pattern. For further improvements, use {@link LoadingCache} and its
    * {@link LoadingCache#get(Object) get(K)} method instead of this one.
-   *
+   *  这个方法改善了传统的模式：“如果缓存中存在key，则返回。否则创建并返回”。
+   *  如何改善传统的模式：“则使用LoadingCache类及它的方法LoadingCache.get(K)方法”
    * <p>Among the improvements that this method and {@code LoadingCache.get(K)} both provide are:
    *
+   *这个方法的改善如下：
+   *  1.LoadingCache.get(Object) 等待直到结果返回而不是在开启一个去加载
+   *  2.消除易出错的消息模板
+   *  3.跟踪load
    * <ul>
    *   <li>{@linkplain LoadingCache#get(Object) awaiting the result of a pending load} rather than
    *       starting a redundant one
@@ -83,10 +95,16 @@ public interface Cache<K, V> {
    * result of the query. Or use {@code LoadingCache.get(K)}, which lacks the ability to refer to
    * state other than that in the key.
    *
+   * 对于给定的key，每个loader使用key获取的值应该是一样的。否则，一个调用通过loader加载可能返回另一个call的调用
+   * ，表现出不一致的结果。
+   *
    * <p><b>Warning:</b> as with {@link CacheLoader#load}, {@code loader} <b>must not</b> return
    * {@code null}; it may either return a non-null value or throw an exception.
    *
+   * CacheLoader不能返回null。要么返回非空值。要么扔出异常。
    * <p>No observable state associated with this cache is modified until loading completes.
+   *
+   * cache的状态不能被改变 直到加载完成
    *
    * @throws ExecutionException if a checked exception was thrown while loading the value
    * @throws UncheckedExecutionException if an unchecked exception was thrown while loading the
@@ -126,6 +144,8 @@ public interface Cache<K, V> {
   void putAll(Map<? extends K, ? extends V> m);
 
   /** Discards any cached value for key {@code key}. */
+
+  /**使得某个缓存key进行失效*/
   void invalidate(@CompatibleWith("K") Object key);
 
   /**

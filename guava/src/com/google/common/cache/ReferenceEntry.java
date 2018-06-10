@@ -21,8 +21,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * An entry in a reference map.
  *
+ * 一个map里的引用数据项
  * <p>Entries in the map can be in the following states:
  *
+ * map里的数据项可能包含以下几种状态：
+ *
+ *   有效：
+ *     1. 活得；有效的key/value被设置
+ *     2. 加载状态：加载状态是一种等待加载完成。
  * <p>Valid:
  *
  * <ul>
@@ -31,6 +37,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * </ul>
  *
  * <p>Invalid:
+ *
+ *  无效的数据项：
+ *
+ *    过期的：
+ *    被垃圾收集器收集的，部分key/value被垃圾收集器收集。但是至今没有cleaned up
+ *    被回收，等待cleanup或者重用。
  *
  * <ul>
  *   <li>Expired: time expired (key/value may still be set)
@@ -41,12 +53,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 @GwtIncompatible
 interface ReferenceEntry<K, V> {
   /** Returns the value reference from this entry. */
+
+  /**值引用*/
   ValueReference<K, V> getValueReference();
 
   /** Sets the value reference for this entry. */
+  /**设置值引用*/
   void setValueReference(ValueReference<K, V> valueReference);
 
   /** Returns the next entry in the chain. */
+  /**返回链路中的下一个引用*/
   @Nullable
   ReferenceEntry<K, V> getNext();
 
@@ -54,6 +70,7 @@ interface ReferenceEntry<K, V> {
   int getHash();
 
   /** Returns the key for this entry. */
+  /**返回此数据项的Key*/
   @Nullable
   K getKey();
 
@@ -64,6 +81,7 @@ interface ReferenceEntry<K, V> {
    */
 
   /** Returns the time that this entry was last accessed, in ns. */
+  /**返回数据项的最后一次访问时间*/
   long getAccessTime();
 
   /** Sets the entry access time in ns. */
@@ -85,6 +103,8 @@ interface ReferenceEntry<K, V> {
    * Implemented by entries that use write order. Write entries are maintained in a doubly-linked
    * list. New entries are added at the tail of the list at write time and stale entries are
    * expired from the head of the list.
+   *
+   * 实体被维护在双端队列中。新的实体被添加在集合的尾部在写时。实体过期时从头部开始
    */
 
   /** Returns the time that this entry was last written, in ns. */

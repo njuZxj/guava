@@ -63,6 +63,7 @@ public abstract class CacheLoader<K, V> {
   /**
    * Computes or retrieves the value corresponding to {@code key}.
    *
+   * 查询key关联的value值
    * @param key the non-null key whose value should be loaded
    * @return the value associated with {@code key}; <b>must not be null</b>
    * @throws Exception if unable to load the result
@@ -76,6 +77,8 @@ public abstract class CacheLoader<K, V> {
    * Computes or retrieves a replacement value corresponding to an already-cached {@code key}. This
    * method is called when an existing cache entry is refreshed by {@link
    * CacheBuilder#refreshAfterWrite}, or through a call to {@link LoadingCache#refresh}.
+   *
+   * 更新缓存中的值。这个方法被调用在调用refreshAfterWrite时。或者可以通过LoadingCache#refresh方法调用
    *
    * <p>This implementation synchronously delegates to {@link #load}. It is recommended that it be
    * overridden with an asynchronous implementation when using {@link

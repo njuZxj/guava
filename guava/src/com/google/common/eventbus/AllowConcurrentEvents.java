@@ -26,6 +26,7 @@ import java.lang.annotation.Target;
  *
  * <p>This does not mark the method, and so should be used in combination with {@link Subscribe}.
  *
+ * 标记一个订阅方法是线程安全的。
  * @author Cliff Biffle
  * @since 10.0
  */

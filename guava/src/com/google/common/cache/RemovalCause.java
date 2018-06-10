@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * The reason why a cached entry was removed.
- *
+ * 缓存被移除的原因
  * @author Charles Fry
  * @since 10.0
  */
@@ -31,7 +31,9 @@ public enum RemovalCause {
    * The entry was manually removed by the user. This can result from the user invoking {@link
    * Cache#invalidate}, {@link Cache#invalidateAll(Iterable)}, {@link Cache#invalidateAll()}, {@link
    * Map#remove}, {@link ConcurrentMap#remove}, or {@link Iterator#remove}.
+   *
    */
+  /**显示的移除*/
   EXPLICIT {
     @Override
     boolean wasEvicted() {
@@ -45,6 +47,7 @@ public enum RemovalCause {
    * {@link Map#putAll}, {@link ConcurrentMap#replace(Object, Object)}, or {@link
    * ConcurrentMap#replace(Object, Object, Object)}.
    */
+  /**replaced。值被替换*/
   REPLACED {
     @Override
     boolean wasEvicted() {
@@ -56,6 +59,10 @@ public enum RemovalCause {
    * The entry was removed automatically because its key or value was garbage-collected. This can
    * occur when using {@link CacheBuilder#weakKeys}, {@link CacheBuilder#weakValues}, or {@link
    * CacheBuilder#softValues}.
+   *
+   *  collected
+   *  缓存项被自动的移除 由于它的key和value被垃圾回收。
+   *  这种情况发生在weakKeys或者。weakValues，softValues
    */
   COLLECTED {
     @Override
@@ -67,6 +74,8 @@ public enum RemovalCause {
   /**
    * The entry's expiration timestamp has passed. This can occur when using {@link
    * CacheBuilder#expireAfterWrite} or {@link CacheBuilder#expireAfterAccess}.
+   *
+   * expired。缓存项的过期时间已到。
    */
   EXPIRED {
     @Override
@@ -78,6 +87,8 @@ public enum RemovalCause {
   /**
    * The entry was evicted due to size constraints. This can occur when using {@link
    * CacheBuilder#maximumSize} or {@link CacheBuilder#maximumWeight}.
+   *
+   * 缓存项被踢出由于大小限制
    */
   SIZE {
     @Override

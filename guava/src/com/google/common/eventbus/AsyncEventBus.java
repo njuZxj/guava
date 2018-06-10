@@ -20,7 +20,7 @@ import java.util.concurrent.Executor;
 /**
  * An {@link EventBus} that takes the Executor of your choice and uses it to dispatch events,
  * allowing dispatch to occur asynchronously.
- *
+ * 允许异步的分发事件
  * @author Cliff Biffle
  * @since 10.0
  */

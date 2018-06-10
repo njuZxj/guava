@@ -23,6 +23,8 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
  * fixed but arbitrary point in time. Note that most users should use {@link Stopwatch} instead of
  * interacting with this class directly.
  *
+ * 一个时间源。代表了从某个时间点以来已经经过的时间毫秒数
+ *
  * <p><b>Warning:</b> this interface can only be used to measure elapsed time, not wall time.
  *
  * @author Kevin Bourrillion

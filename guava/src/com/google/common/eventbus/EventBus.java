@@ -92,15 +92,23 @@ import java.util.logging.Logger;
  * @author Cliff Biffle
  * @since 10.0
  */
+
+/**
+ * 事件总线
+ */
 @Beta
 public class EventBus {
 
   private static final Logger logger = Logger.getLogger(EventBus.class.getName());
 
+  /**唯一标识符*/
   private final String identifier;
+
+  /**线程执行器*/
   private final Executor executor;
   private final SubscriberExceptionHandler exceptionHandler;
 
+  /**订阅者注册中心*/
   private final SubscriberRegistry subscribers = new SubscriberRegistry(this);
   private final Dispatcher dispatcher;
 

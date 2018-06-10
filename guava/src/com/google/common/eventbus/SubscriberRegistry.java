@@ -44,18 +44,23 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.logging.Logger;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Registry of subscribers to a single event bus.
  *
+ * 订阅者的注册中心到一个单一的事件线
  * @author Colin Decker
  */
 final class SubscriberRegistry {
 
+  private static final Logger logger = Logger.getLogger(SubscriberRegistry.class.getName());
   /**
    * All registered subscribers, indexed by event type.
    *
+   * 所有注册的订阅者
    * <p>The {@link CopyOnWriteArraySet} values make it easy and relatively lightweight to get an
    * immutable snapshot of all current subscribers to an event without any locking.
    */
@@ -70,11 +75,15 @@ final class SubscriberRegistry {
   }
 
   /** Registers all subscriber methods on the given listener object. */
+  /**注册订阅者 所有的订阅方法*/
   void register(Object listener) {
     Multimap<Class<?>, Subscriber> listenerMethods = findAllSubscribers(listener);
 
     for (Entry<Class<?>, Collection<Subscriber>> entry : listenerMethods.asMap().entrySet()) {
+      /**事件的数据类型*/
       Class<?> eventType = entry.getKey();
+
+      /**事件类型对于的方法集合*/
       Collection<Subscriber> eventMethodsInListener = entry.getValue();
 
       CopyOnWriteArraySet<Subscriber> eventSubscribers = subscribers.get(eventType);
@@ -157,6 +166,8 @@ final class SubscriberRegistry {
 
   /**
    * Returns all subscribers for the given listener grouped by the type of event they subscribe to.
+   *
+   * 对于给定的一个订阅者。找到订阅者对应的订阅方法
    */
   private Multimap<Class<?>, Subscriber> findAllSubscribers(Object listener) {
     Multimap<Class<?>, Subscriber> methodsInListener = HashMultimap.create();
@@ -169,16 +180,25 @@ final class SubscriberRegistry {
     return methodsInListener;
   }
 
+  /**
+   * 获取包含注解的方法集合
+   * @param clazz
+   * @return
+   */
   private static ImmutableList<Method> getAnnotatedMethods(Class<?> clazz) {
     return subscriberMethodsCache.getUnchecked(clazz);
   }
 
   private static ImmutableList<Method> getAnnotatedMethodsNotCached(Class<?> clazz) {
+    logger.info(clazz.getName());
     Set<? extends Class<?>> supertypes = TypeToken.of(clazz).getTypes().rawTypes();
     Map<MethodIdentifier, Method> identifiers = Maps.newHashMap();
     for (Class<?> supertype : supertypes) {
+      /**返回用户对一个类定义的方法。不包括继承的方法*/
       for (Method method : supertype.getDeclaredMethods()) {
+
         if (method.isAnnotationPresent(Subscribe.class) && !method.isSynthetic()) {
+          System.out.println(method.getName());
           // TODO(cgdecker): Should check for a generic parameter type and error out
           Class<?>[] parameterTypes = method.getParameterTypes();
           checkArgument(

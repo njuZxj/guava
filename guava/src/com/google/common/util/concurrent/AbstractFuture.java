@@ -30,13 +30,8 @@ import com.google.j2objc.annotations.ReflectionSupport;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
@@ -479,6 +474,7 @@ public abstract class AbstractFuture<V> extends FluentFuture<V> {
   @CanIgnoreReturnValue
   @Override
   public V get() throws InterruptedException, ExecutionException {
+
     if (Thread.interrupted()) {
       throw new InterruptedException();
     }

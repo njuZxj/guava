@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * controls the order in which events are dispatched, while the executor controls how (i.e. on which
  * thread) the subscriber is actually called when an event is dispatched to it.
  *
+ * 提供不同的提交事件的策略
  * @author Colin Decker
  */
 abstract class Dispatcher {
@@ -38,10 +39,15 @@ abstract class Dispatcher {
    * dispatching an event, guaranteeing that all events posted on a single thread are dispatched to
    * all subscribers in the order they are posted.
    *
+   * 返回一个事件分发器。事件被提交到一个已经分发事件的线程中进行分发，此线程含有一个队列，用来存放事件。
+   *
    * <p>When all subscribers are dispatched to using a <i>direct</i> executor (which dispatches on
    * the same thread that posts the event), this yields a breadth-first dispatch order on each
    * thread. That is, all subscribers to a single event A will be called before any subscribers to
    * any events B and C that are posted to the event bus by the subscribers to A.
+   *
+   * 当订阅者使用一个 direct executor执行事件，及提交事件跟分发事件使用同一个线程。这保证了如果事件A
+   * 在事件B和C之前，那个事件A的消费一定在事件B和C之前。
    */
   static Dispatcher perThreadDispatchQueue() {
     return new PerThreadQueuedDispatcher();
@@ -52,6 +58,10 @@ abstract class Dispatcher {
    * matches the original behavior of AsyncEventBus exactly, but is otherwise not especially useful.
    * For async dispatch, an {@linkplain #immediate() immediate} dispatcher should generally be
    * preferable.
+   *
+   * 返回一个分发器。所有的事件被提交到一个单一的全局队列。
+   *
+   * 对于异步分发器，一个immediate()分发器应该更好
    */
   static Dispatcher legacyAsync() {
     return new LegacyAsyncDispatcher();
@@ -70,11 +80,18 @@ abstract class Dispatcher {
   abstract void dispatch(Object event, Iterator<Subscriber> subscribers);
 
   /** Implementation of a {@link #perThreadDispatchQueue()} dispatcher. */
+
+  /**
+   * 每个线程有个对应的队列的分发器
+   */
   private static final class PerThreadQueuedDispatcher extends Dispatcher {
 
     // This dispatcher matches the original dispatch behavior of EventBus.
 
     /** Per-thread queue of events to dispatch. */
+    /**
+     * 每个线程对应的事件队列
+     */
     private final ThreadLocal<Queue<Event>> queue =
         new ThreadLocal<Queue<Event>>() {
           @Override
@@ -84,6 +101,9 @@ abstract class Dispatcher {
         };
 
     /** Per-thread dispatch state, used to avoid reentrant event dispatching. */
+    /**
+     * 每个线程分发状态，使用它为了避免重新进入分发事件
+     */
     private final ThreadLocal<Boolean> dispatching =
         new ThreadLocal<Boolean>() {
           @Override
@@ -127,13 +147,17 @@ abstract class Dispatcher {
   }
 
   /** Implementation of a {@link #legacyAsync()} dispatcher. */
+  /**
+   * 传统的异步分发实现
+   * 所有的事件都放到一个全局的队列里
+   */
   private static final class LegacyAsyncDispatcher extends Dispatcher {
 
     // This dispatcher matches the original dispatch behavior of AsyncEventBus.
-    //
+    /**这个分发器匹配起初的异步bus*/
     // We can't really make any guarantees about the overall dispatch order for this dispatcher in
     // a multithreaded environment for a couple reasons:
-    //
+    //我们不能保证分发事件的顺序
     // 1. Subscribers to events posted on different threads can be interleaved with each other
     //    freely. (A event on one thread, B event on another could yield any of
     //    [a1, a2, a3, b1, b2], [a1, b2, a2, a3, b2], [a1, b2, b3, a2, a3], etc.)
@@ -148,6 +172,7 @@ abstract class Dispatcher {
     // in some cases.
 
     /** Global event queue. */
+    /**全局的事件队列*/
     private final ConcurrentLinkedQueue<EventWithSubscriber> queue =
         Queues.newConcurrentLinkedQueue();
 
@@ -176,6 +201,9 @@ abstract class Dispatcher {
   }
 
   /** Implementation of {@link #immediate()}. */
+  /**
+   * 立即提交事件给订阅者的分发器
+   */
   private static final class ImmediateDispatcher extends Dispatcher {
     private static final ImmediateDispatcher INSTANCE = new ImmediateDispatcher();
 

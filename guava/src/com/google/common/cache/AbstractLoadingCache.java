@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutionException;
  * in terms of {@link #invalidate}. The method {@link #cleanUp} is a no-op. All other methods throw
  * an {@link UnsupportedOperationException}.
  *
+ * 这个类为程序员实现缓存提供了更大的便利。程序员仅仅需要实现get()和getIfPresent()方法
  * @author Charles Fry
  * @since 11.0
  */
@@ -42,6 +43,7 @@ public abstract class AbstractLoadingCache<K, V> extends AbstractCache<K, V>
     implements LoadingCache<K, V> {
 
   /** Constructor for use by subclasses. */
+  /**抽象类构造函数，子类可以使用。如果有参数，必须在子类中做显示的调用super(i)*/
   protected AbstractLoadingCache() {}
 
   @Override

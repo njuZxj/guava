@@ -36,6 +36,8 @@ import java.util.concurrent.locks.Condition;
  * interrupted during such a call, the call continues to block until the result is available or the
  * timeout elapses, and only then re-interrupts the thread.
  *
+ *  一个工具类处理中断操作作为不可中断的。在所有的情况下，如果一个线程被中断在整个调用过程中，调用继续
+ *  阻塞 直到这个结果可用或者超时产生。然后线程重新中断。
  * @author Anthony Zana
  * @since 10.0
  */

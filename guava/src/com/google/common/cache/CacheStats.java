@@ -53,14 +53,28 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Charles Fry
  * @since 10.0
+ *
+ * 缓存统计。它是个不可变的类。一旦对象被创建，就不被允许修改
+ *
+ * 当手动移除缓存或者使缓存无效后 相关统计项不会发生变化。
  */
 @GwtCompatible
 public final class CacheStats {
+
+  /**缓存命中次数*/
   private final long hitCount;
+
+  /**缓存未命中次数；缓存load成功或者load抛出异常时。都会加一*/
   private final long missCount;
+
+  /**缓存加载次数*/
   private final long loadSuccessCount;
   private final long loadExceptionCount;
+
+  /**缓存加载总时间*/
   private final long totalLoadTime;
+
+  /**缓存项过期个数*/
   private final long evictionCount;
 
   /**
@@ -95,11 +109,14 @@ public final class CacheStats {
    * Returns the number of times {@link Cache} lookup methods have returned either a cached or
    * uncached value. This is defined as {@code hitCount + missCount}.
    */
+  /**计算请求次数*/
   public long requestCount() {
     return hitCount + missCount;
   }
 
+
   /** Returns the number of times {@link Cache} lookup methods have returned a cached value. */
+  /**计算命中次数*/
   public long hitCount() {
     return hitCount;
   }
@@ -108,6 +125,8 @@ public final class CacheStats {
    * Returns the ratio of cache requests which were hits. This is defined as {@code hitCount /
    * requestCount}, or {@code 1.0} when {@code requestCount == 0}. Note that {@code hitRate +
    * missRate =~ 1.0}.
+   *
+   * 计算命中率
    */
   public double hitRate() {
     long requestCount = requestCount();
